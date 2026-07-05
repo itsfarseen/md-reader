@@ -145,11 +145,14 @@ button:hover { border-color: var(--accent); }
 .reader-topbar {
   display: flex;
   align-items: center;
+  flex-wrap: nowrap;
   gap: 10px;
   padding: 10px 14px;
   border-bottom: 1px solid var(--border);
   background: var(--bg);
 }
+.reader-topbar[hidden] { display: none; }
+.reader-topbar > button { flex: 0 0 auto; }
 .reader-topbar .title {
   flex: 1;
   min-width: 0;
@@ -172,33 +175,28 @@ button:hover { border-color: var(--accent); }
 /* Keep code blocks readable; hljs sets the palette. */
 .markdown-body pre { overflow: auto; }
 
-/* ---------- Font-size toolbar ---------- */
-.font-toolbar {
-  position: fixed;
-  left: 50%;
-  bottom: max(16px, env(safe-area-inset-bottom));
-  transform: translateX(-50%);
+/* ---------- Top-bar font-size controls ---------- */
+.reader-fontctrls {
+  flex: 0 0 auto;
+  margin-left: auto;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
-  background: var(--toolbar-bg);
-  backdrop-filter: blur(8px);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  box-shadow: 0 6px 24px rgba(0, 0, 0, .18);
-  z-index: 40;
-  transition: opacity .15s, transform .15s;
+  gap: 4px;
 }
-.font-toolbar[hidden] { display: none; }
-.font-toolbar .size-label {
-  min-width: 44px;
+.reader-fontctrls .size-label {
+  min-width: 40px;
   text-align: center;
   color: var(--muted);
   font-variant-numeric: tabular-nums;
+  font-size: 13px;
 }
-.font-toolbar button { min-width: 40px; font-size: 16px; }
-.font-toolbar .a-big { font-size: 20px; }
+.reader-fontctrls button {
+  min-width: 34px;
+  padding: 4px 8px;
+  font-size: 15px;
+}
+.reader-fontctrls .a-big { font-size: 18px; }
+.reader-fontctrls .link-btn { min-width: 0; }
 
 /* ---------- Update banner ---------- */
 .update-banner {
