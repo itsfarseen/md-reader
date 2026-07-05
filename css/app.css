@@ -138,11 +138,18 @@ button:hover { border-color: var(--accent); }
 
 /* ---------- Reader view ---------- */
 .reader {
+  position: relative;
   display: flex;
   flex-direction: column;
   height: 100dvh;
 }
+/* Overlay so toggling the bar never reflows the markdown content. */
 .reader-topbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
   display: flex;
   align-items: center;
   flex-wrap: nowrap;
@@ -150,6 +157,7 @@ button:hover { border-color: var(--accent); }
   padding: 10px 14px;
   border-bottom: 1px solid var(--border);
   background: var(--bg);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 .reader-topbar[hidden] { display: none; }
 .reader-topbar > button { flex: 0 0 auto; }
@@ -190,12 +198,16 @@ button:hover { border-color: var(--accent); }
   font-variant-numeric: tabular-nums;
   font-size: 13px;
 }
-.reader-fontctrls button {
-  min-width: 34px;
-  padding: 4px 8px;
+.reader-fontctrls button:not(.link-btn) {
+  width: 36px;
+  height: 32px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-size: 15px;
 }
-.reader-fontctrls .a-big { font-size: 18px; }
+.reader-fontctrls button.a-big { font-size: 18px; }
 .reader-fontctrls .link-btn { min-width: 0; }
 
 /* ---------- Update banner ---------- */
