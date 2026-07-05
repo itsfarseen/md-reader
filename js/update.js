@@ -71,18 +71,28 @@ export function initUpdates() {
     .catch((err) => console.warn("SW registration failed:", err));
 }
 
-// Manually poll for a new deployment. Resolves to a status the caller can
-// surface to the user. If a newer worker exists, the usual updatefound flow
-// (above) shows the refresh banner, so callers only need to report the result.
-export async function checkForUpdates() {
-  if (!("serviceWorker" in navigator)) return { supported: false };
-
-  const reg = registration || (await navigator.serviceWorker.getRegistration());
-  if (!reg) return { supported: false };
-
-  await reg.update();
-
-  // After update() the browser starts installing any new worker, or a fresh
-  // one may already be waiting — either means an update is on its way.
-  return { supported: true, updateAvailable: !!(reg.installing || reg.waiting) };
+// Hard "get the latest build now" escape hatch.
+//
+// The normal update flow (above) only reacts when the *bytes of sw.js* change,
+// and even then it serves whatever the versioned cache holds — which can be
+// stale if the precache captured old bytes (see AGENTS.md). This bypasses all
+// of that: unregister every worker, drop every Cache Storage entry, then reload
+// straight from the network. On the next load a fresh worker re-registers and
+// re-precaches from scratch. This never returns — the page navigates away.
+export async function forceReload() {
+  try {
+    if ("serviceWorker" in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map((r) => r.unregister()));
+    }
+    if ("caches" in window) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map((k) => caches.delete(k)));
+    }
+  } catch (err) {
+    console.warn("Force reload cleanup failed:", err);
+  }
+  // With the worker unregistered nothing intercepts fetches, so a plain reload
+  // revalidates every asset against the server.
+  window.location.reload();
 }

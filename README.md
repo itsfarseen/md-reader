@@ -92,3 +92,8 @@ in the footer on the home page.
 Use [semantic versioning](https://semver.org/) (`MAJOR.MINOR.PATCH`). If you add or
 change the pinned CDN library versions, update them in **both** `index.html` and the
 `CDN_ASSETS` list in `sw.js`.
+
+See [`AGENTS.md`](./AGENTS.md) for the cache-busting caveats and version-string
+gotchas behind these rules — read it before changing `sw.js`, `version.js`, or any
+precached asset. If a build ever looks stale despite a deploy, the **Force reload**
+link next to the footer version clears all caches and reloads from the network.

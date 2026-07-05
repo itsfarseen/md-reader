@@ -4,7 +4,7 @@ import { APP_VERSION } from "../version.js";
 import { addFile, listFiles, getFile, deleteFile } from "./storage.js";
 import { renderReaderView } from "./reader.js";
 import { getTheme, toggleTheme } from "./theme.js";
-import { initUpdates, checkForUpdates } from "./update.js";
+import { initUpdates, forceReload } from "./update.js";
 import { initInstall, createInstallButton } from "./install.js";
 
 const app = document.getElementById("app");
@@ -144,32 +144,19 @@ async function renderHome() {
   const versionLabel = document.createElement("span");
   versionLabel.textContent = `Markdown Reader v${APP_VERSION}`;
 
-  const checkBtn = document.createElement("button");
-  checkBtn.type = "button";
-  checkBtn.className = "link-btn";
-  checkBtn.textContent = "Check for updates";
-  checkBtn.addEventListener("click", async () => {
-    checkBtn.disabled = true;
-    const label = checkBtn.textContent;
-    checkBtn.textContent = "Checking…";
-    try {
-      const res = await checkForUpdates();
-      if (!res.supported) {
-        toast("Updates aren't supported in this browser");
-      } else if (res.updateAvailable) {
-        toast("A new version is available — see the refresh prompt");
-      } else {
-        toast("You're on the latest version");
-      }
-    } catch {
-      toast("Couldn't check for updates");
-    } finally {
-      checkBtn.textContent = label;
-      checkBtn.disabled = false;
-    }
+  const reloadBtn = document.createElement("button");
+  reloadBtn.type = "button";
+  reloadBtn.className = "link-btn";
+  reloadBtn.textContent = "Force reload";
+  reloadBtn.title =
+    "Clear all caches and reload the latest version from the network";
+  reloadBtn.addEventListener("click", async () => {
+    reloadBtn.disabled = true;
+    reloadBtn.textContent = "Reloading…";
+    await forceReload(); // navigates away; no need to restore the button
   });
 
-  footer.append(versionLabel, document.createTextNode(" · "), checkBtn);
+  footer.append(versionLabel, document.createTextNode(" · "), reloadBtn);
 
   home.append(header, uploader, listWrap, footer);
   app.replaceChildren(home);
