@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Upload, store and read Markdown files with GitHub styling, LaTeX math and code highlighting.">
+  <title>Markdown Reader</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="./manifest.webmanifest">
+  <meta name="theme-color" content="#0d1117" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <link rel="icon" href="./icons/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+
+  <!--
+    Rendering libraries loaded from jsDelivr, pinned to exact versions.
+    KaTeX is the same LaTeX renderer used by claude.ai. The service worker
+    caches these responses so the app renders fully offline after first load.
+  -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.17.0/dist/katex.min.css">
+  <!-- GitHub markdown themes: both loaded, toggled via `disabled` by theme.js -->
+  <link id="md-theme-light" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5.9.0/github-markdown-light.css">
+  <link id="md-theme-dark" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5.9.0/github-markdown-dark.css" disabled>
+  <!-- highlight.js code themes: both loaded, toggled via `disabled` by theme.js -->
+  <link id="hl-theme-light" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.11.1/styles/github.min.css">
+  <link id="hl-theme-dark" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.11.1/styles/github-dark.min.css" disabled>
+
+  <link rel="stylesheet" href="./css/app.css">
+
+  <!-- Library JS (classic, deferred so they run in order before the app module). -->
+  <script defer src="https://cdn.jsdelivr.net/npm/marked@18.0.5/lib/marked.umd.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.17.0/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.17.0/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.11.1/highlight.min.js"></script>
+
+  <script type="module" src="./js/app.js"></script>
+</head>
+<body>
+  <div id="app"></div>
+
+  <!-- New-version prompt (shown by js/update.js) -->
+  <div id="update-banner" class="update-banner" hidden>
+    <span>A new version is available.</span>
+    <button id="update-refresh" type="button">Refresh</button>
+    <button id="update-dismiss" type="button" class="link-btn">Dismiss</button>
+  </div>
+</body>
+</html>

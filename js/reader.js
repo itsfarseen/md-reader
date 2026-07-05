@@ -1,0 +1,124 @@
+// Reader view: renders stored markdown with GitHub styling, KaTeX math and
+// highlight.js code highlighting. Center-tap toggles a global font-size toolbar.
+
+const FONT_KEY = "mdreader.fontSize";
+const FONT_MIN = 12;
+const FONT_MAX = 30;
+const FONT_DEFAULT = 16;
+
+function getFontSize() {
+  const v = parseInt(localStorage.getItem(FONT_KEY), 10);
+  return Number.isFinite(v) ? Math.min(FONT_MAX, Math.max(FONT_MIN, v)) : FONT_DEFAULT;
+}
+function setFontSize(px) {
+  const clamped = Math.min(FONT_MAX, Math.max(FONT_MIN, px));
+  localStorage.setItem(FONT_KEY, String(clamped));
+  return clamped;
+}
+
+// KaTeX delimiters matching what claude.ai accepts.
+const MATH_DELIMITERS = [
+  { left: "$$", right: "$$", display: true },
+  { left: "\\[", right: "\\]", display: true },
+  { left: "\\(", right: "\\)", display: false },
+  { left: "$", right: "$", display: false },
+];
+
+function renderMarkdown(container, markdown) {
+  // marked -> HTML (GitHub-flavored; break on single newlines like GitHub).
+  container.innerHTML = window.marked.parse(markdown, {
+    gfm: true,
+    breaks: false,
+  });
+
+  // Syntax highlighting first so KaTeX doesn't touch code blocks.
+  if (window.hljs) {
+    container.querySelectorAll("pre code").forEach((block) => {
+      window.hljs.highlightElement(block);
+    });
+  }
+
+  // Math rendering. ignoredTags keeps KaTeX out of code/pre.
+  if (window.renderMathInElement) {
+    window.renderMathInElement(container, {
+      delimiters: MATH_DELIMITERS,
+      throwOnError: false,
+      ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code"],
+    });
+  }
+}
+
+function buildFontToolbar(applySize) {
+  const bar = document.createElement("div");
+  bar.className = "font-toolbar";
+  bar.hidden = true;
+  bar.innerHTML = `
+    <button type="button" data-act="dec" aria-label="Decrease font size">A&minus;</button>
+    <span class="size-label"></span>
+    <button type="button" class="a-big" data-act="inc" aria-label="Increase font size">A+</button>
+    <button type="button" class="link-btn" data-act="reset">Reset</button>
+  `;
+  const label = bar.querySelector(".size-label");
+  const refresh = () => (label.textContent = `${getFontSize()}px`);
+  refresh();
+
+  bar.addEventListener("click", (e) => {
+    const act = e.target.closest("button")?.dataset.act;
+    if (!act) return;
+    e.stopPropagation();
+    let size = getFontSize();
+    if (act === "inc") size = setFontSize(size + 1);
+    else if (act === "dec") size = setFontSize(size - 1);
+    else if (act === "reset") size = setFontSize(FONT_DEFAULT);
+    applySize(size);
+    refresh();
+  });
+
+  return bar;
+}
+
+export function renderReaderView(file, onBack) {
+  const view = document.createElement("div");
+  view.className = "reader";
+
+  const topbar = document.createElement("div");
+  topbar.className = "reader-topbar";
+  const back = document.createElement("button");
+  back.type = "button";
+  back.textContent = "← Back";
+  back.addEventListener("click", onBack);
+  const title = document.createElement("div");
+  title.className = "title";
+  title.textContent = file.name;
+  topbar.append(back, title);
+
+  const scroll = document.createElement("div");
+  scroll.className = "reader-scroll";
+  const body = document.createElement("article");
+  body.className = "markdown-body";
+  scroll.appendChild(body);
+
+  const applySize = (px) => body.style.setProperty("--md-font-size", `${px}px`);
+  applySize(getFontSize());
+
+  const toolbar = buildFontToolbar(applySize);
+
+  // Center-tap: toggle the toolbar when the user taps the middle of the page.
+  scroll.addEventListener("click", (e) => {
+    // Ignore interactions with links / buttons / selected text.
+    if (e.target.closest("a, button, input, textarea, select, label")) return;
+    if (window.getSelection && String(window.getSelection())) return;
+
+    const rect = scroll.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width;
+    const y = (e.clientY - rect.top) / rect.height;
+    const inCenter = x > 1 / 3 && x < 2 / 3 && y > 1 / 4 && y < 3 / 4;
+    if (inCenter) toolbar.hidden = !toolbar.hidden;
+    else toolbar.hidden = true;
+  });
+
+  renderMarkdown(body, file.content);
+
+  view.append(topbar, scroll, toolbar);
+  return view;
+}
