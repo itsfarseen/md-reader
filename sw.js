@@ -2,7 +2,7 @@
 //
 // CACHE_VERSION MUST match APP_VERSION in version.js. Bumping it on every PR
 // invalidates old caches and drives the "new version — refresh" prompt.
-const CACHE_VERSION = "0.3.0";
+const CACHE_VERSION = "0.3.1";
 const CACHE_NAME = `md-reader-v${CACHE_VERSION}`;
 
 // App shell (same-origin) precached on install.
@@ -28,7 +28,6 @@ const CDN_ASSETS = [
   "https://cdn.jsdelivr.net/npm/marked@18.0.5/lib/marked.umd.js",
   "https://cdn.jsdelivr.net/npm/katex@0.17.0/dist/katex.min.css",
   "https://cdn.jsdelivr.net/npm/katex@0.17.0/dist/katex.min.js",
-  "https://cdn.jsdelivr.net/npm/katex@0.17.0/dist/contrib/auto-render.min.js",
   "https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.11.1/highlight.min.js",
   "https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.11.1/styles/github.min.css",
   "https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.11.1/styles/github-dark.min.css",
