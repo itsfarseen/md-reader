@@ -136,6 +136,11 @@ button:hover { border-color: var(--accent); }
   padding: 16px;
 }
 
+.app-footer .link-btn {
+  font-size: inherit;
+  padding: 0 2px;
+}
+
 /* ---------- Reader view ---------- */
 .reader {
   position: relative;

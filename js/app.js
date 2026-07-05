@@ -4,7 +4,7 @@ import { APP_VERSION } from "../version.js";
 import { addFile, listFiles, getFile, deleteFile } from "./storage.js";
 import { renderReaderView } from "./reader.js";
 import { getTheme, toggleTheme } from "./theme.js";
-import { initUpdates } from "./update.js";
+import { initUpdates, forceReload } from "./update.js";
 import { initInstall, createInstallButton } from "./install.js";
 
 const app = document.getElementById("app");
@@ -140,7 +140,23 @@ async function renderHome() {
 
   const footer = document.createElement("div");
   footer.className = "app-footer";
-  footer.textContent = `Markdown Reader v${APP_VERSION}`;
+
+  const versionLabel = document.createElement("span");
+  versionLabel.textContent = `Markdown Reader v${APP_VERSION}`;
+
+  const reloadBtn = document.createElement("button");
+  reloadBtn.type = "button";
+  reloadBtn.className = "link-btn";
+  reloadBtn.textContent = "Force reload";
+  reloadBtn.title =
+    "Clear all caches and reload the latest version from the network";
+  reloadBtn.addEventListener("click", async () => {
+    reloadBtn.disabled = true;
+    reloadBtn.textContent = "Reloading…";
+    await forceReload(); // navigates away; no need to restore the button
+  });
+
+  footer.append(versionLabel, document.createTextNode(" · "), reloadBtn);
 
   home.append(header, uploader, listWrap, footer);
   app.replaceChildren(home);
