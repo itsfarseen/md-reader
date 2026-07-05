@@ -1,5 +1,6 @@
 // Reader view: renders stored markdown with GitHub styling, KaTeX math and
-// highlight.js code highlighting. Center-tap toggles a global font-size toolbar.
+// highlight.js code highlighting. The top bar holds the font-size controls;
+// a middle-third tap toggles the top bar, and left/right-third taps page.
 
 const FONT_KEY = "mdreader.fontSize";
 const FONT_MIN = 12;
@@ -48,10 +49,10 @@ function renderMarkdown(container, markdown) {
   }
 }
 
-function buildFontToolbar(applySize) {
+// Font-size controls, embedded in the reader top bar (right-aligned).
+function buildFontControls(applySize) {
   const bar = document.createElement("div");
-  bar.className = "font-toolbar";
-  bar.hidden = true;
+  bar.className = "reader-fontctrls";
   bar.innerHTML = `
     <button type="button" data-act="dec" aria-label="Decrease font size">A&minus;</button>
     <span class="size-label"></span>
@@ -90,7 +91,6 @@ export function renderReaderView(file, onBack) {
   const title = document.createElement("div");
   title.className = "title";
   title.textContent = file.name;
-  topbar.append(back, title);
 
   const scroll = document.createElement("div");
   scroll.className = "reader-scroll";
@@ -101,9 +101,13 @@ export function renderReaderView(file, onBack) {
   const applySize = (px) => body.style.setProperty("--md-font-size", `${px}px`);
   applySize(getFontSize());
 
-  const toolbar = buildFontToolbar(applySize);
+  const fontControls = buildFontControls(applySize);
+  topbar.append(back, title, fontControls);
 
-  // Center-tap: toggle the toolbar when the user taps the middle of the page.
+  // Tap navigation over the full-height reader, split into horizontal thirds:
+  //   left third  -> page up (previous)
+  //   right third -> page down (next)
+  //   middle third -> toggle the top bar
   scroll.addEventListener("click", (e) => {
     // Ignore interactions with links / buttons / selected text.
     if (e.target.closest("a, button, input, textarea, select, label")) return;
@@ -111,14 +115,20 @@ export function renderReaderView(file, onBack) {
 
     const rect = scroll.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width;
-    const y = (e.clientY - rect.top) / rect.height;
-    const inCenter = x > 1 / 3 && x < 2 / 3 && y > 1 / 4 && y < 3 / 4;
-    if (inCenter) toolbar.hidden = !toolbar.hidden;
-    else toolbar.hidden = true;
+    const PAGE_OVERLAP = 60; // keep a little context between pages
+    const page = Math.max(1, scroll.clientHeight - PAGE_OVERLAP);
+
+    if (x < 1 / 3) {
+      scroll.scrollBy({ top: -page, behavior: "smooth" });
+    } else if (x > 2 / 3) {
+      scroll.scrollBy({ top: page, behavior: "smooth" });
+    } else {
+      topbar.hidden = !topbar.hidden;
+    }
   });
 
   renderMarkdown(body, file.content);
 
-  view.append(topbar, scroll, toolbar);
+  view.append(topbar, scroll);
   return view;
 }

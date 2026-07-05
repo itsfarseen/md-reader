@@ -4,6 +4,8 @@ An installable, offline-capable PWA for reading Markdown files in the browser �
 styled like GitHub, with LaTeX math and code syntax highlighting. Pure vanilla
 JavaScript, no build step.
 
+**Live app:** https://itsfarseen.github.io/md-reader/
+
 ## Features
 
 - **Upload markdown to browser storage** — files are stored locally in IndexedDB.
@@ -14,8 +16,10 @@ JavaScript, no build step.
 - **LaTeX math** — rendered with [KaTeX](https://katex.org/), the same renderer used
   by claude.ai. Supports `$…$` / `\(…\)` (inline) and `$$…$$` / `\[…\]` (display).
 - **Code syntax highlighting** — via [highlight.js](https://highlightjs.org/).
-- **Center-tap font toolbar** — tap the middle of the reader to reveal a bottom
-  toolbar (A− / A+ / Reset). Font size is stored **globally** and applied to every file.
+- **Top-bar font controls** — A− / A+ / Reset live in the reader's top bar
+  (right-aligned). Font size is stored **globally** and applied to every file.
+- **Tap navigation** — tap the middle third of the reader to hide/show the top
+  bar; tap the left or right third to page up / page down.
 - **Light / dark theme** — manual toggle, persisted globally.
 - **Installable PWA** — add to home screen; works **fully offline** after the first
   load (the service worker caches the app shell *and* the pinned CDN libraries).
@@ -31,6 +35,14 @@ The app is fully static, but service workers and PWA installation require an
 python3 -m http.server 8000
 # then open http://localhost:8000
 ```
+
+## Deployment
+
+The app is deployed to **GitHub Pages** at
+<https://itsfarseen.github.io/md-reader/>. Deploys run automatically on every
+push to `main` via the workflow in
+[`.github/workflows/deploy-pages.yml`](./.github/workflows/deploy-pages.yml),
+which publishes the repository root as-is (no build step).
 
 ## Tech / dependencies
 
