@@ -4,6 +4,10 @@
 // while an old one still controls the page, we surface a refresh banner.
 // Clicking Refresh tells the waiting worker to activate, then reloads.
 
+// Registration is stashed once initUpdates runs so the "Check for updates"
+// link in the home footer can trigger a manual check on demand.
+let registration = null;
+
 export function initUpdates() {
   if (!("serviceWorker" in navigator)) return;
 
@@ -36,6 +40,8 @@ export function initUpdates() {
   navigator.serviceWorker
     .register("./sw.js")
     .then((reg) => {
+      registration = reg;
+
       // A worker was already waiting when the page loaded.
       if (reg.waiting && navigator.serviceWorker.controller) {
         showBanner(reg.waiting);
@@ -63,4 +69,20 @@ export function initUpdates() {
       });
     })
     .catch((err) => console.warn("SW registration failed:", err));
+}
+
+// Manually poll for a new deployment. Resolves to a status the caller can
+// surface to the user. If a newer worker exists, the usual updatefound flow
+// (above) shows the refresh banner, so callers only need to report the result.
+export async function checkForUpdates() {
+  if (!("serviceWorker" in navigator)) return { supported: false };
+
+  const reg = registration || (await navigator.serviceWorker.getRegistration());
+  if (!reg) return { supported: false };
+
+  await reg.update();
+
+  // After update() the browser starts installing any new worker, or a fresh
+  // one may already be waiting — either means an update is on its way.
+  return { supported: true, updateAvailable: !!(reg.installing || reg.waiting) };
 }
