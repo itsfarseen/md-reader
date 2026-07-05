@@ -5,6 +5,7 @@ import { addFile, listFiles, getFile, deleteFile } from "./storage.js";
 import { renderReaderView } from "./reader.js";
 import { getTheme, toggleTheme } from "./theme.js";
 import { initUpdates } from "./update.js";
+import { initInstall, createInstallButton } from "./install.js";
 
 const app = document.getElementById("app");
 
@@ -71,7 +72,7 @@ async function renderHome() {
   h1.textContent = "Markdown Reader";
   const actions = document.createElement("div");
   actions.className = "header-actions";
-  actions.append(themeButton());
+  actions.append(createInstallButton(), themeButton());
   header.append(h1, actions);
 
   // Uploader
@@ -174,3 +175,4 @@ window.addEventListener("DOMContentLoaded", router);
 if (document.readyState !== "loading") router();
 
 initUpdates();
+initInstall();
