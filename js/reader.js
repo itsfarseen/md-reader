@@ -17,34 +17,77 @@ function setFontSize(px) {
   return clamped;
 }
 
-// KaTeX delimiters matching what claude.ai accepts.
-const MATH_DELIMITERS = [
-  { left: "$$", right: "$$", display: true },
-  { left: "\\[", right: "\\]", display: true },
-  { left: "\\(", right: "\\)", display: false },
-  { left: "$", right: "$", display: false },
+// Math is tokenized during marked parsing (see mathExtensions) rather than by a
+// post-hoc DOM scan. Rendering math after marked let marked mangle the LaTeX first
+// — e.g. subscript underscores in `$\mathbb{Q}_{\ge 0}$` were paired into <em>,
+// splitting the formula across element boundaries so KaTeX could no longer match it.
+// As a marked token the math content is opaque to marked, and code blocks/spans are
+// skipped naturally (their content never reaches the inline lexer).
+
+// Render one math token to an HTML string; never throw out of the renderer.
+function renderMath(tex, displayMode) {
+  try {
+    return window.katex.renderToString(tex, { displayMode, throwOnError: false });
+  } catch {
+    const span = document.createElement("span");
+    span.textContent = tex; // fall back to escaped source rather than blow up
+    return span.outerHTML;
+  }
+}
+
+// Factory for an inline-level marked math extension. Delimiters match what
+// claude.ai accepts: $$…$$ and \[…\] (display), \(…\) and $…$ (inline).
+function mathExtension(name, trigger, re, displayMode) {
+  return {
+    name,
+    level: "inline",
+    start(src) {
+      const i = src.indexOf(trigger);
+      return i < 0 ? undefined : i;
+    },
+    tokenizer(src) {
+      const m = re.exec(src);
+      if (!m) return undefined;
+      return { type: name, raw: m[0], text: m[1], displayMode };
+    },
+    renderer(token) {
+      return renderMath(token.text, token.displayMode);
+    },
+  };
+}
+
+// Order matters: $$ must be registered before single-$.
+const mathExtensions = [
+  mathExtension("mathBlockDollar",  "$$",  /^\$\$([\s\S]+?)\$\$/,   true),
+  mathExtension("mathBlockBracket", "\\[", /^\\\[([\s\S]+?)\\\]/,   true),
+  mathExtension("mathInlineParen",  "\\(", /^\\\(([\s\S]+?)\\\)/,   false),
+  // inline $…$, guarded so currency ("$5 and $10") isn't taken as math:
+  mathExtension("mathInlineDollar", "$",   /^\$(?![\s\d$])((?:\\\$|[^$])+?)(?<!\s)\$/, false),
 ];
 
+let markedConfigured = false;
+function configureMarked() {
+  if (markedConfigured || !window.marked) return;
+  window.marked.use({ extensions: mathExtensions });
+  markedConfigured = true;
+}
+
 function renderMarkdown(container, markdown) {
+  // Install the math extensions lazily (once) so we don't race the deferred
+  // marked CDN script at module-import time.
+  configureMarked();
+
   // marked -> HTML (GitHub-flavored; break on single newlines like GitHub).
+  // Math is emitted as final KaTeX HTML during this parse.
   container.innerHTML = window.marked.parse(markdown, {
     gfm: true,
     breaks: false,
   });
 
-  // Syntax highlighting first so KaTeX doesn't touch code blocks.
+  // Syntax highlighting for fenced code blocks.
   if (window.hljs) {
     container.querySelectorAll("pre code").forEach((block) => {
       window.hljs.highlightElement(block);
-    });
-  }
-
-  // Math rendering. ignoredTags keeps KaTeX out of code/pre.
-  if (window.renderMathInElement) {
-    window.renderMathInElement(container, {
-      delimiters: MATH_DELIMITERS,
-      throwOnError: false,
-      ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code"],
     });
   }
 }
