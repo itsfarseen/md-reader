@@ -61,8 +61,10 @@ const mathExtensions = [
   mathExtension("mathBlockDollar",  "$$",  /^\$\$([\s\S]+?)\$\$/,   true),
   mathExtension("mathBlockBracket", "\\[", /^\\\[([\s\S]+?)\\\]/,   true),
   mathExtension("mathInlineParen",  "\\(", /^\\\(([\s\S]+?)\\\)/,   false),
-  // inline $…$, guarded so currency ("$5 and $10") isn't taken as math:
-  mathExtension("mathInlineDollar", "$",   /^\$(?![\s\d$])((?:\\\$|[^$])+?)(?<!\s)\$/, false),
+  // inline $…$. Pandoc-style currency guard: the closing $ must not be
+  // immediately followed by a digit (so "$5 and $10" / "$20,000" stay literal).
+  // Digits ARE allowed right after the opening $, so "$0$" / "$1 + 1 = 2$" render.
+  mathExtension("mathInlineDollar", "$",   /^\$(?!\s)((?:\\\$|[^$])+?)(?<!\s)\$(?!\d)/, false),
 ];
 
 let markedConfigured = false;

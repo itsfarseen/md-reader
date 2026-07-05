@@ -2,7 +2,7 @@
 //
 // CACHE_VERSION MUST match APP_VERSION in version.js. Bumping it on every PR
 // invalidates old caches and drives the "new version — refresh" prompt.
-const CACHE_VERSION = "0.3.1";
+const CACHE_VERSION = "0.3.2";
 const CACHE_NAME = `md-reader-v${CACHE_VERSION}`;
 
 // App shell (same-origin) precached on install.
